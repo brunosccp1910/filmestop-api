@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  psql-db:
+    image: postgres:15.2
+    container_name: psql-db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: topfilmesdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-volume:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d topfilmesdb"]
+      interval: 5s
+      timeout: 20s
+      retries: 5
+
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: topfilmes-app
+    ports:
+      - "5000:5000"
+    depends_on:
+      psql-db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    environment:
+      - FLASK_ENV=development
+    command: python run.py
+    volumes:
+      - .:/case-datamint
+
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: topfilmes-test
+    depends_on:
+      psql-db:
+        condition: service_healthy
+    environment:
+      - FLASK_ENV=testing
+    command: pytest -v
+    volumes:
+      - .:/case-datamint
+
+volumes:
+  db-volume:
