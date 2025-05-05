@@ -1,22 +1,23 @@
 from filmestop.extensions import db
 from filmestop.models import db, User, Movie, Rent, Review, Catalogue_Genre
-from datetime import date, timedelta
+from filmestop.routes.case_requirements import recalculate_movie_rating
+from datetime import date
 import random
-
 
 
 def seed_genres():
     genres = [
-         'Action', 'Comedy', 'Drama', 'Horror', 'Romance', 'Sci-Fi', 'Fantasy', 'Thriller', 'Documentary', 'Animation'
-     ]
+        'Action', 'Comedy', 'Drama', 'Horror', 'Romance', 'Sci-Fi',
+        'Fantasy', 'Thriller', 'Documentary', 'Animation'
+    ]
 
     for genre_name in genres:
-         # Verifica se o gênero já existe
-         if not Catalogue_Genre.query.filter_by(genre_name=genre_name).first():
-             genre = Catalogue_Genre(genre_name=genre_name)
-             db.session.add(genre)
+        if not Catalogue_Genre.query.filter_by(genre_name=genre_name).first():
+            genre = Catalogue_Genre(genre_name=genre_name)
+            db.session.add(genre)
 
     db.session.commit()
+
 
 def seed_demo_data():
     print("Verificando usuários existentes...")
@@ -39,7 +40,6 @@ def seed_demo_data():
     db.session.commit()
     print(f"{len(users)} novos usuários inseridos.")
 
-    # Gêneros já devem existir
     genres = {g.genre_name: g.id for g in Catalogue_Genre.query.all()}
     print("Gêneros encontrados:", genres)
 
@@ -67,7 +67,7 @@ def seed_demo_data():
     db.session.commit()
     print("Filmes atualizados.")
 
-    # Aluguéis (usuarios 1 a 3)
+    # Aluguéis
     all_users = User.query.limit(3).all()
     all_movies = Movie.query.all()
     rents = []
@@ -86,15 +86,19 @@ def seed_demo_data():
     db.session.commit()
     print("Aluguéis inseridos.")
 
-    # Avaliações (somente filmes alugados)
-    reviews = []
+    # Avaliações com recalculo das médias
+    affected_movies = set()
     for user in all_users:
         for movie_id in user_rented_movies[user.id]:
             if random.random() < 0.7:
                 if not Review.query.filter_by(user_id=user.id, movie_id=movie_id).first():
                     review = Review(user_id=user.id, movie_id=movie_id, rate=random.randint(50, 100))
-                    reviews.append(review)
+                    db.session.add(review)
+                    affected_movies.add(movie_id)
 
-    db.session.add_all(reviews)
     db.session.commit()
-    print("Avaliações inseridas.")
+
+    for movie_id in affected_movies:
+        recalculate_movie_rating(movie_id)
+
+    print("Avaliações inseridas e médias recalculadas.")
