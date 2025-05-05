@@ -41,6 +41,7 @@ README.md                  # Documentação do projeto
 
 ##  Como rodar com Docker
 > Na raiz do projeto.
+> São inseridos alguns dados iniciais para facilitar a validação de funcionalidade. Cinco usuários foram criados, bem como 10 filmes, alugueis e avaliações.
 
 ```bash
 docker-compose up --build
