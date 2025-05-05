@@ -12,6 +12,7 @@ def recalculate_movie_rating(movie_id):
     
     """
     Recalcula os campos de média de avaliação de filme e incrementa o contador de avaliações
+    Função que garante a feature opcional h
 
     Returns:
         Response 200 com mensagem de sucesso.
@@ -40,7 +41,7 @@ def recalculate_movie_rating(movie_id):
 
 @main.route('/movies', methods=['GET'])
 @cache.cached(timeout=60, query_string=True)
-def get_movies_by_genre():
+def get_movies_by_genre_id():
     """
     Lista todos os filmes ou filtra por gênero
 
@@ -51,7 +52,7 @@ def get_movies_by_genre():
 
     ---
     tags:
-      - case-Filmes
+      - CASE-Filmes
     parameters:
       - name: genre_id
         in: query
@@ -140,7 +141,7 @@ def get_movie_by_id(movie_id):
 
     ---
     tags:
-      - case-Filmes
+      - CASE-Filmes
     parameters:
       - name: movie_id
         in: path
@@ -163,6 +164,8 @@ def get_movie_by_id(movie_id):
         'name': movie.name,
         'director': movie.director,
         'year': movie.year,
+        'avg_rate': movie.avg_rate,
+        'count_review': movie.count_review,
         'genre': movie.genre.genre_name if movie.genre else None
     }), 200
 
@@ -179,7 +182,7 @@ def rent_movie(user_id, movie_id):
 
     ---
     tags:
-      - case-Aluguéis
+      - CASE-Aluguéis
     parameters:
       - name: user_id
         in: path
@@ -284,7 +287,7 @@ def set_review_rate(user_id, movie_id):
 
     ---
     tags:
-      - case-Avaliações
+      - CASE-Avaliações
     parameters:
       - name: user_id
         in: path
@@ -369,7 +372,7 @@ def get_rented_movies(user_id):
 
     ---
     tags:
-      - case-Aluguéis
+      - CASE-Aluguéis
     parameters:
       - name: user_id
         in: path

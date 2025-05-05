@@ -4,6 +4,7 @@ from flask_caching import Cache
 
 
 # Este módulo segue o padrão Singleton para garantir que apenas uma instância de cada extensão
+
 # Instancia o objeto SQLAlchemy.
 db = SQLAlchemy()
 

@@ -21,7 +21,7 @@ tests/
 Dockerfile                 # Dockerfile para construir a imagem da aplicação
 docker-compose.yml         # Orquestração dos containers (PostgreSQL, Redis, App)
 run.py                     # Entrada principal da aplicação Flask
-seed_data.py               # Script de seed dos gêneros iniciais
+seed_data.py               # Script de seed dos gêneros iniciais e inserção no banco para testes
 requirements.txt           # Dependências da aplicação
 README.md                  # Documentação do projeto
 ```
@@ -37,22 +37,27 @@ README.md                  # Documentação do projeto
 - Docker / Docker Compose
 - Flasgger (Swagger UI)
 
-##  Testes
 
-Execute os testes com:
-> Os testes são executados com SQLite em memória para performance.
-
-```bash
-docker-compose run --rm test
-```
 
 ##  Como rodar com Docker
+> Na raiz do projeto.
 
 ```bash
 docker-compose up --build
 ```
 
 Acesse a aplicação em `http://localhost:5000`.
+
+##  Testes
+
+Execute os testes com:
+> Os testes são executados com SQLite em memória para performance.
+> Para rodar os testes separadamente:
+
+
+```bash
+docker-compose run --rm test
+```
 
 ##  Documentação Swagger
 
