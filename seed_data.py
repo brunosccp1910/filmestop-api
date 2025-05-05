@@ -19,70 +19,82 @@ def seed_genres():
     db.session.commit()
 
 def seed_demo_data():
-        # Usuários
-        users = [
-            User(name="Bruno Silva", email="bruno@email.com", phone="99999-0001"),
-            User(name="Jack Antônio", email="jack@email.com", phone="99999-0002"),
-            User(name="Hellen Barros", email="hellen@email.com", phone="99999-0003"),
-            User(name="Maria Silva", email="maria@email.com", phone="99999-0004"),
-            User(name="Francisco Ferreira", email="francisco@email.com", phone="99999-0005")
-        ]
-        print("Inserindo usuários...")
+    print("Verificando usuários existentes...")
+    existing_emails = {u.email for u in User.query.all()}
+    users_data = [
+        {"name": "Bruno Silva", "email": "bruno@email.com", "phone": "99999-0001"},
+        {"name": "Jack Antônio", "email": "jack@email.com", "phone": "99999-0002"},
+        {"name": "Hellen Barros", "email": "hellen@email.com", "phone": "99999-0003"},
+        {"name": "Maria Silva", "email": "maria@email.com", "phone": "99999-0004"},
+        {"name": "Francisco Ferreira", "email": "francisco@email.com", "phone": "99999-0005"},
+    ]
 
-        db.session.add_all(users)
-        db.session.commit()
-        print("Usuários inseridos com sucesso.")
+    users = []
+    for user_data in users_data:
+        if user_data["email"] not in existing_emails:
+            user = User(**user_data)
+            db.session.add(user)
+            users.append(user)
 
-        # Gêneros já devem existir no banco
-        genres = {g.genre_name: g.id for g in Catalogue_Genre.query.all()}
-        print("Gêneros encontrados:", genres)
+    db.session.commit()
+    print(f"{len(users)} novos usuários inseridos.")
 
-        # Filmes
-        print("Inserindo filmes...")
+    # Gêneros já devem existir
+    genres = {g.genre_name: g.id for g in Catalogue_Genre.query.all()}
+    print("Gêneros encontrados:", genres)
 
-        filmes = [
-            Movie(name="Matrix", director="Wachowski", year=1999, genre_id=genres.get("Action", 1)),
-            Movie(name="Titanic", director="James Cameron", year=1997, genre_id=genres.get("Romance", 2)),
-            Movie(name="Avatar", director="James Cameron", year=2009, genre_id=genres.get("Sci-Fi", 3)),
-            Movie(name="O Auto da Compadecida", director="Guel Arraes", year=2000, genre_id=genres.get("Comedy", 4)),
-            Movie(name="Coringa", director="Todd Phillips", year=2019, genre_id=genres.get("Drama", 5)),
-            Movie(name="Inception", director="Christopher Nolan", year=2010, genre_id=genres.get("Action", 1)),
-            Movie(name="A Origem", director="Christopher Nolan", year=2010, genre_id=genres.get("Sci-Fi", 3)),
-            Movie(name="O Poderoso Chefão", director="Francis Ford Coppola", year=1972, genre_id=genres.get("Drama", 5)),
-            Movie(name="Cidade de Deus", director="Fernando Meirelles", year=2002, genre_id=genres.get("Drama", 5)),
-            Movie(name="Parasita", director="Bong Joon-ho", year=2019, genre_id=genres.get("Thriller", 6))
-        ]
-        db.session.add_all(filmes)
-        db.session.commit()
-        print("Filmes inseridos com sucesso.")
+    print("Verificando filmes existentes...")
+    existing_movies = {m.name for m in Movie.query.all()}
+    filmes_data = [
+        ("Matrix", "Wachowski", 1999, "Action"),
+        ("Titanic", "James Cameron", 1997, "Romance"),
+        ("Avatar", "James Cameron", 2009, "Sci-Fi"),
+        ("O Auto da Compadecida", "Guel Arraes", 2000, "Comedy"),
+        ("Coringa", "Todd Phillips", 2019, "Drama"),
+        ("Inception", "Christopher Nolan", 2010, "Action"),
+        ("A Origem", "Christopher Nolan", 2010, "Sci-Fi"),
+        ("O Poderoso Chefão", "Francis Ford Coppola", 1972, "Drama"),
+        ("Cidade de Deus", "Fernando Meirelles", 2002, "Drama"),
+        ("Parasita", "Bong Joon-ho", 2019, "Thriller"),
+    ]
 
-        # Aluguéis (apenas usuários 1, 2 e 3)
-        all_users = User.query.limit(3).all()
-        all_movies = Movie.query.all()
-        rents = []
-        user_rented_movies = {user.id: [] for user in all_users}
+    for name, director, year, genre in filmes_data:
+        if name not in existing_movies:
+            genre_id = genres.get(genre, 1)
+            movie = Movie(name=name, director=director, year=year, genre_id=genre_id)
+            db.session.add(movie)
 
-        for user in all_users:
-            rented_movies = random.sample(all_movies, k=5)  # cada um aluga 5 filmes
-            for movie in rented_movies:
+    db.session.commit()
+    print("Filmes atualizados.")
+
+    # Aluguéis (usuarios 1 a 3)
+    all_users = User.query.limit(3).all()
+    all_movies = Movie.query.all()
+    rents = []
+    user_rented_movies = {user.id: [] for user in all_users}
+
+    for user in all_users:
+        rented_movies = random.sample(all_movies, k=5)
+        for movie in rented_movies:
+            if not Rent.query.filter_by(user_id=user.id, movie_id=movie.id).first():
                 start = date(2025, 1, random.randint(1, 20))
                 rent = Rent(user_id=user.id, movie_id=movie.id, start_date=start, rent_days=random.randint(1, 7))
                 rents.append(rent)
-                user_rented_movies[user.id].append(movie.id)  # salva quais filmes ele alugou
+                user_rented_movies[user.id].append(movie.id)
 
-        db.session.add_all(rents)
-        db.session.commit()
-        print("Aluguéis inseridos com sucesso.")
+    db.session.add_all(rents)
+    db.session.commit()
+    print("Aluguéis inseridos.")
 
-        # Avaliações (somente dos filmes alugados)
-        reviews = []
-        for user in all_users:
-            for movie_id in user_rented_movies[user.id]:
-                if random.random() < 0.7:  # nem todo filme alugado precisa ser avaliado
-                    rate = random.randint(50, 100)
-                    review = Review(user_id=user.id, movie_id=movie_id, rate=rate)
+    # Avaliações (somente filmes alugados)
+    reviews = []
+    for user in all_users:
+        for movie_id in user_rented_movies[user.id]:
+            if random.random() < 0.7:
+                if not Review.query.filter_by(user_id=user.id, movie_id=movie_id).first():
+                    review = Review(user_id=user.id, movie_id=movie_id, rate=random.randint(50, 100))
                     reviews.append(review)
 
-        db.session.add_all(reviews)
-        db.session.commit()
-        print("Avaliações inseridas com sucesso.")
+    db.session.add_all(reviews)
+    db.session.commit()
+    print("Avaliações inseridas.")

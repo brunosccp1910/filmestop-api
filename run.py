@@ -4,6 +4,7 @@ from flask_migrate import upgrade
 import time
 
 app = create_app()
+print(">>> Iniciando run.py")
 
 if __name__ == '__main__':
     with app.app_context():

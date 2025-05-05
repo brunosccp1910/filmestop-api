@@ -10,6 +10,6 @@ COPY . .
 ENV FLASK_APP=filmestop
 ENV FLASK_ENV=development
 
-CMD ["python", "run.py"]
+#CMD ["python", "run.py"]
 #CMD ["pytest"]
 
